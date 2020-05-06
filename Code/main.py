@@ -44,13 +44,13 @@ def GenerateNucleonPosition(A20, R0, rhoBar, rhoRange, gamScale, gamShape):
         R = R0 * b2(x,y,z,A20)
         R2 = R*R
         loopCount = loopCount + 1
-        if loopCount > 10:
+        if loopCount > 50:
                 z = gamma(gamShape,gamScale)
                 while z >= zConstraints:
                     z = gamma(gamShape, gamScale)
                 loopCount = 1
                 tries = tries + 1
-        if tries > 10000:
+        if tries > 1000:
             return [x,y,sign*z,1]
     return [x,y,sign*z,0]
 
@@ -61,8 +61,8 @@ N = 140
 SCALE = 12
 
 def Main():
-
     A = Z + N
+    fileOutput = open("Positions-{A}-{Z}.txt".format(A = A, Z = Z),"w+")
     sampleSize = 1000
     iConst = 1
     A20 = 2
@@ -84,18 +84,24 @@ def Main():
     rhoRange = max(rhoBar) - min(rhoBar)
     rRange = max(rBar) - min(rBar)
     shape = 1 + abs(max(zBar))/SCALE
-    xProton = []
-    zProton = []
+    xValidProton = []
+    zValidProton = []
+    xInvalidProton = []
+    zInvalidProton = []
     errorCount = 1
     for i in range(N):
         positions = GenerateNucleonPosition(A20,R0,rhoBar,rhoRange,SCALE,shape)
-        xProton.append(positions[0])
-        zProton.append(positions[2])
+        fileOutput.write("{x},{y},{z}\n".format(x = positions[0], y = positions[1], z =positions[2]))
         if positions[3] != 0:
-            errorCount = errorCount + 1
-    print("Invalid positions: %i" %errorCount)
+            xInvalidProton.append(positions[0])
+            zInvalidProton.append(positions[2])
+        else:
+            xValidProton.append(positions[0])
+            zValidProton.append(positions[2])
+    fileOutput.close()
     plt.plot(zBar,rhoBar)
-    plt.scatter(zProton,xProton,c='red')
+    plt.scatter(zValidProton,xValidProton,c='red')
+    plt.scatter(zInvalidProton,xInvalidProton,c='blue')
     plt.show()
 
 
