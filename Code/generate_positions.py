@@ -16,8 +16,6 @@ from constants import SCALE
 from constants import PI
 from utils import GenerateCommonValues
 
-
-
 #R0 POSITION COMPONENTS FUNCTIONS
 def b1(x,y,z):
     return pow(cos(atan(sqrt(x*x+y*y)/z)),2)
@@ -66,7 +64,7 @@ def OutputPositionsToFile(A20, A, Z, postArray, nucleonType):
         fileOutput.write("{x},{y},{z}\n".format(x=x,y=y,z=z))
     fileOutput.close()
 
-def SaveFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton):
+def SavePositionFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton):
     CreateFolder(A,Z,imageFolder=True)
     plt.plot(zBar, rhoBar)
     plt.scatter(postNeutron[2],postNeutron[0],c='red',marker='.')
@@ -102,7 +100,7 @@ def GeneratePositions(N,Z):
 
         OutputPositionsToFile(A20,A,Z,postNeutron,"Neutron")
         OutputPositionsToFile(A20,A,Z,postProton,"Proton")
-        SaveFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton)
+        SavePositionFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton)
 
 N = int(sys.argv[1])
 Z = int(sys.argv[2])
