@@ -1,22 +1,22 @@
+#PACKAGE IMPORTS
 import matplotlib.pyplot as plt
-
+import sys
 from numpy import arange
 from numpy.random import gamma
 from math import cos
 from math import sin
 from math import atan
 from math import sqrt
+from os import path
+from os import mkdir
 from random import random
 
-#R0 SHAPE COMPONENTS FUNCTIONS
-def a1(A20):
-    return 4*pow(A20,3)/35
+#USER DEFINED IMPORTS
+from constants import SCALE
+from constants import PI
+from utils import GenerateCommonValues
 
-def a2(A20):
-    return 6*pow(A20,2)/5
 
-def K(A20):
-    return a1(A20) + a2(A20) + 2
 
 #R0 POSITION COMPONENTS FUNCTIONS
 def b1(x,y,z):
@@ -25,84 +25,86 @@ def b2(x,y,z,A20):
     return (1 + A20 *(0.5*(3*b1(x,y,z)-1)))
 
 #GENERATE POSITIONS FUNCTION
-def GenerateNucleonPosition(A20, R0, rhoBar, rhoRange, gamScale, gamShape):
+def GenerateNucleonPosition(A20, R0, rhoMin, rhoRange, gamScale, gamShape):
     zConstraints = R0*(1+A20)
     sign = 1 if random() > 0.5 else -1
     z = gamma(gamShape,gamScale)
     while z >= zConstraints:
         z = gamma(gamShape, gamScale)
-    x = min(rhoBar) + rhoRange*random()
-    y = min(rhoBar) + rhoRange*random()
+    x = rhoMin + rhoRange*random()
+    y = rhoMin + rhoRange*random()
     R = R0 * b2(x,y,z,A20)
-    R2 = R*R
-    nucleonPosition = x*x + y*y + z*z
     loopCount = 1
-    tries = 1
-    while nucleonPosition > R2:
-        x = min(rhoBar) + rhoRange*random()
-        y = min(rhoBar) + rhoRange*random()
+    while x*x + y*y + z*z >= R*R:
+        x = rhoMin + rhoRange*random()
+        y = rhoMin + rhoRange*random()
         R = R0 * b2(x,y,z,A20)
-        R2 = R*R
         loopCount = loopCount + 1
-        if loopCount > 50:
+        if loopCount > 5000:
                 z = gamma(gamShape,gamScale)
                 while z >= zConstraints:
                     z = gamma(gamShape, gamScale)
                 loopCount = 1
-                tries = tries + 1
-        if tries > 1000:
-            return [x,y,sign*z,1]
-    return [x,y,sign*z,0]
+    return [x,y,sign*z]
+
+#FOLDERING AND OUTPUT
+def CreateFolder(A,Z,imageFolder = False):
+    folderName = "{A}-{Z}".format(A = A, Z = Z)
+    if not path.exists(folderName):
+        mkdir(folderName)
+    if imageFolder :
+        folderName = folderName + r"/Images"
+        if not path.exists(folderName):
+            mkdir(folderName)
+
+def OutputPositionsToFile(A20, A, Z, postArray, nucleonType):
+    CreateFolder(A,Z)
+    fileOutput = open("{A}-{Z}/{A}-{Z}_{type}_{A20:.2f}".format(A = A, Z = Z, type = nucleonType, A20=A20),"w+")
+    nucleonCount = Z if nucleonType == "Proton" else A-Z
+    for i in range(nucleonCount):
+        x, y, z = postArray[0][i],postArray[1][i],postArray[2][i]
+        fileOutput.write("{x},{y},{z}\n".format(x=x,y=y,z=z))
+    fileOutput.close()
+
+def SaveFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton):
+    CreateFolder(A,Z,imageFolder=True)
+    plt.plot(zBar, rhoBar)
+    plt.scatter(postNeutron[2],postNeutron[0],c='red',marker='.')
+    plt.scatter(postProton[2],postProton[0],c='green',marker='.')
+    plt.savefig("{A}-{Z}/Images/{A20:.2f}.png".format(A = A, Z = Z, A20 = A20))
+    plt.clf()
 
 #CONSTANTS
-PI = 3.14159265
 Z = 92
 N = 140
-SCALE = 12
 
-def Main():
-    A = Z + N
-    fileOutput = open("Positions-{A}-{Z}.txt".format(A = A, Z = Z),"w+")
-    sampleSize = 1000
-    iConst = 1
-    A20 = 2
-    R0 = 1.2 * pow(2 * A / K(A20),1/3)
-    dx = 0.001
-    dy = 0.001
-    dz = 0.001
-    dtheta = 0.001*PI
-    dphi = 0.001*PI
-    zBar = []
-    rhoBar = []
-    rBar = []
-    for theta in arange(0,2*PI,dtheta):
-        R = R0 * (1 + A20 * (0.5*(3*cos(theta)*cos(theta)-1)))
-        zBar.append(R*cos(theta))
-        rhoBar.append(R*sin(theta))
-        rBar.append(R)
-    zRange = max(zBar) - min(zBar)
-    rhoRange = max(rhoBar) - min(rhoBar)
-    rRange = max(rBar) - min(rBar)
-    shape = 1 + abs(max(zBar))/SCALE
-    xValidProton = []
-    zValidProton = []
-    xInvalidProton = []
-    zInvalidProton = []
-    errorCount = 1
-    for i in range(N):
-        positions = GenerateNucleonPosition(A20,R0,rhoBar,rhoRange,SCALE,shape)
-        fileOutput.write("{x},{y},{z}\n".format(x = positions[0], y = positions[1], z =positions[2]))
-        if positions[3] != 0:
-            xInvalidProton.append(positions[0])
-            zInvalidProton.append(positions[2])
-        else:
-            xValidProton.append(positions[0])
-            zValidProton.append(positions[2])
-    fileOutput.close()
-    plt.plot(zBar,rhoBar)
-    plt.scatter(zValidProton,xValidProton,c='red')
-    plt.scatter(zInvalidProton,xInvalidProton,c='blue')
-    plt.show()
+def GeneratePositions(N,Z):
+    A = Z + N 
+    for A20 in arange(0,2.01,0.01):
+        R0, zBar, rhoBar, rBar = GenerateCommonValues(A,A20)
+        rhoRange = max(rhoBar) - min(rhoBar)
+        rRange = max(rBar) - min(rBar)
+        shape = 1 + abs(max(zBar))/SCALE
 
+        postNeutron = [[],[],[]]
+        for i in range(N):
+            newPositions = GenerateNucleonPosition(A20,R0,min(rhoBar),rhoRange,SCALE,shape)
+            postNeutron[0].append(newPositions[0])
+            postNeutron[1].append(newPositions[1])
+            postNeutron[2].append(newPositions[2])
 
-Main()
+        postProton = [[],[],[]]
+        for i in range(Z):
+            newPositions = GenerateNucleonPosition(A20,R0,min(rhoBar),rhoRange,SCALE,shape)
+            postProton[0].append(newPositions[0])
+            postProton[1].append(newPositions[1])
+            postProton[2].append(newPositions[2])
+
+        OutputPositionsToFile(A20,A,Z,postNeutron,"Neutron")
+        OutputPositionsToFile(A20,A,Z,postProton,"Proton")
+        SaveFigure(A20,A,Z,zBar,rhoBar,postNeutron,postProton)
+
+N = int(sys.argv[1])
+Z = int(sys.argv[2])
+
+GeneratePositions(N,Z)
