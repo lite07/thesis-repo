@@ -1,6 +1,7 @@
 from constants import PI
 from math import cos
 from math import sin
+from math import sqrt
 from numpy import arange
 
 #PRIVATE FUNCTIONS
