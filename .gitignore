@@ -1,1 +1,7 @@
 /Code/Data/*
+/Data/*
+/lite-env/*
+/Code/__pycache__/*
+/.vscode/*
+
+
