@@ -14,6 +14,7 @@ from random import random
 #USER DEFINED IMPORTS
 from constants import SCALE
 from constants import PI
+from constants import DATA_FOLDER_PATH
 from utils import GenerateCommonValues
 from utils import R0Func
 
@@ -48,7 +49,7 @@ def GenerateNucleonPosition(A20, R0, rhoMin, rhoRange, gamScale, gamShape):
 
 #FOLDERING AND OUTPUT
 def CreateFolder(A,Z,sampleCount=0,imageFolder = False):
-    folderName = "Data/{A}-{Z}".format(A = A, Z = Z)
+    folderName = DATA_FOLDER_PATH + "{A}-{Z}".format(A = A, Z = Z)
     if not path.exists(folderName):
         makedirs(folderName)
             
@@ -86,9 +87,9 @@ def GeneratePositions(N,Z,sampleCount):
         CreateFolder(A,Z,sample)
         CreateFolder(A,Z,imageFolder = True)
         for A20 in arange(0,2.01,0.01):
-            neutronFileName = "Data/{A}-{Z}/{sampleNumber}/{A}-{Z}_{type}_{A20:.2f}".format(A = A, Z = Z, sampleNumber = sample, type = "Neutron", A20=A20)
-            protonFileName = "Data/{A}-{Z}/{sampleNumber}/{A}-{Z}_{type}_{A20:.2f}".format(A = A, Z = Z, sampleNumber = sample, type = "Proton", A20=A20)
-            imageFileName = "Data/{A}-{Z}/Images/{A20:.2f}.png".format(A = A, Z = Z, A20 = A20)
+            neutronFileName = DATA_FOLDER_PATH + "{A}-{Z}/{sampleNumber}/{A}-{Z}_{type}_{A20:.2f}".format(A = A, Z = Z, sampleNumber = sample, type = "Neutron", A20=A20)
+            protonFileName = DATA_FOLDER_PATH + "{A}-{Z}/{sampleNumber}/{A}-{Z}_{type}_{A20:.2f}".format(A = A, Z = Z, sampleNumber = sample, type = "Proton", A20=A20)
+            imageFileName = DATA_FOLDER_PATH + "{A}-{Z}/Images/{A20:.2f}.png".format(A = A, Z = Z, A20 = A20)
             if FileExist(neutronFileName) and FileExist(imageFileName) and FileExist(protonFileName):
                 continue
             
@@ -119,5 +120,5 @@ def GeneratePositions(N,Z,sampleCount):
 
 N = 143 #int(sys.argv[1])
 Z = 92 #int(sys.argv[2])
-sampleCount = 15
+sampleCount = 50
 GeneratePositions(N,Z,sampleCount)
