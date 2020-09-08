@@ -1,12 +1,19 @@
-from constants import PI
-from constants import DATA_FOLDER_PATH
+#PUBLIC LIBRARY IMPORTS
+import matplotlib.pyplot as plt
+import json
+from array import *
 from math import cos
 from math import sin
 from math import sqrt
 from numpy import arange
 from numpy import polyfit
 from numpy import poly1d
+from os import path
 from statistics import mean
+
+#USER DEFINED IMPORTS
+from constants import PI
+from constants import DATA_FOLDER_PATH
 
 #PRIVATE FUNCTIONS
 def __a1(A20):
@@ -23,6 +30,11 @@ def __ConvertToDouble(postString):
     return float(splitter[0]), float(splitter[1]) , float(splitter[2])
 
 #PUBLIC UTILITIES FUNCTION
+def FileExist(filePath):
+    if path.exists(filePath) : 
+        return True
+    return False
+
 def R0Func(A20, A):
     return 1.25 * pow(2 * A / __K(A20),1/3)
 
@@ -60,56 +72,19 @@ def GetPositionsArray(postFile):
         Positions[2].append(z)
     return Positions
 
-def GetCoulombEnergyFromPosition(Z,postProton):
-    E = 0
-    for i in range(Z):
-        for j in range(i+1,Z):
-            xDist = postProton[0][i] - postProton[0][j]
-            yDist = postProton[1][i] - postProton[1][j]
-            zDist = postProton[2][i] - postProton[2][j]
-            r = sqrt(xDist*xDist + yDist*yDist + zDist*zDist)
-            E = E + 1/r
-    return E
+def LoadJsonDataFile():
+    jsonDataFileName = DATA_FOLDER_PATH + "data.json"
+    if not FileExist(jsonDataFileName):
+        print("[Utils.LoadJsonDataFile] 'data.json' is not found. Creating.")
+        emptyJson = {}
+        with open(jsonDataFileName, 'w') as jsonDataFile:
+            json.dump(emptyJson, jsonDataFile)
+        return emptyJson
+    with open(jsonDataFileName) as jsonDataFile:
+        dataJson = json.load(jsonDataFile)
+        return dataJson
 
-def CalculateCoulombEnergies(N,Z,sampleCount):
-    A = N + Z
-    coulombEnergies, A20Plot = [], arange(0,2.01,0.01)
-    for A20 in A20Plot:
-        E = []
-        for sample in range(sampleCount):
-            postFile = open(DATA_FOLDER_PATH + r"{A}-{Z}/{sample}/{A}-{Z}_Proton_{A20:.2f}".format(A=A,Z=Z,A20=A20,sample=sample),'r')
-            postProton = GetPositionsArray(postFile)
-            E.append(GetCoulombEnergyFromPosition(Z,postProton))
-        coulombEnergies.append(mean(E))
-    return coulombEnergies
-
-def CalculateFittedCoulombEnergies(N,Z,sampleCount):
-    A = N + Z
-    coulombEnergies, A20Plot = CalculateCoulombEnergies(N,Z,sampleCount), arange(0,2.01,0.01)
-    fitFunction = poly1d(polyfit(A20Plot,coulombEnergies,7))
-    fittedCoulombEnergies = []
-    for A20 in A20Plot:
-        fittedCoulombEnergies.append(fitFunction(A20))
-    return fittedCoulombEnergies
-
-def CalculateSurfaceEnergies(A):
-    nPartition = 1000
-    dTheta = PI/nPartition
-    A20Plot = arange(0,2.01,0.01)
-    surfaceEnergies = []
-    for A20 in A20Plot:
-        R0 = R0Func(A20,A)
-        surfaceEnergy = 0
-        theta = 0
-        for i in range(nPartition):
-            if i == 0 :
-                surfaceEnergy = surfaceEnergy + FFunc(R0,A20,theta)
-            elif i == nPartition-1:
-                surfaceEnergy = surfaceEnergy + FFunc(R0,A20,theta)
-            elif i % 2 == 0:
-                surfaceEnergy = surfaceEnergy + 2 * FFunc(R0,A20,theta)
-            else:
-                surfaceEnergy = surfaceEnergy + 4 * FFunc(R0,A20,theta)
-            theta = theta + dTheta
-        surfaceEnergies.append(2*PI*dTheta*surfaceEnergy*(1/3))
-    return surfaceEnergies
+def SaveJsonDataFile(dataJson):
+    jsonDataFileName = DATA_FOLDER_PATH + "data.json"
+    with open(jsonDataFileName, 'w') as jsonDataFile:
+        json.dump(dataJson, jsonDataFile, indent=4, sort_keys=True)

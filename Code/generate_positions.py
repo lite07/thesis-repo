@@ -1,4 +1,4 @@
-#PACKAGE IMPORTS
+#PUBLIC LIRBARY IMPORTS
 import matplotlib.pyplot as plt
 import sys
 from numpy import arange
@@ -17,6 +17,7 @@ from constants import PI
 from constants import DATA_FOLDER_PATH
 from utils import GenerateCommonValues
 from utils import R0Func
+from utils import FileExist
 
 #R0 POSITION COMPONENTS FUNCTIONS
 def b1(x,y,z):
@@ -62,11 +63,6 @@ def CreateFolder(A,Z,sampleCount=0,imageFolder = False):
         if not path.exists(folderName):
             makedirs(folderName)
 
-def FileExist(filePath):
-    if path.exists(filePath) : 
-        return True
-    return False
-
 def OutputPositionsToFile(fileName, sampleNumber, postArray, nucleonCount):
     fileOutput = open(fileName,"w+")
     for i in range(nucleonCount):
@@ -79,9 +75,10 @@ def SavePositionFigure(fileName,zBar,rhoBar,postNeutron,postProton):
     plt.scatter(postNeutron[2],postNeutron[0],c='red',marker='.')
     plt.scatter(postProton[2],postProton[0],c='green',marker='.')
     plt.savefig(fileName)
-    plt.clf()
+    plt.clf() 
 
 def GeneratePositions(N,Z,sampleCount):
+    #print("[GeneratePositions] Generating positions for {A}-{Z}.".format(A=N+Z,Z=Z))
     A = Z + N 
     for sample in range(sampleCount):
         CreateFolder(A,Z,sample)
@@ -116,9 +113,3 @@ def GeneratePositions(N,Z,sampleCount):
             OutputPositionsToFile(protonFileName,sample,postProton,Z)
             if sample == 0:
                 SavePositionFigure(imageFileName,zBar,rhoBar,postNeutron,postProton)
-    
-
-N = 143 #int(sys.argv[1])
-Z = 92 #int(sys.argv[2])
-sampleCount = 50
-GeneratePositions(N,Z,sampleCount)

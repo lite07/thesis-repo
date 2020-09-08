@@ -1,26 +1,23 @@
-from statistics import mean
-import matplotlib.pyplot as plt
-from numpy import arange
-from utils import CalculateFittedCoulombEnergies
-from utils import CalculateSurfaceEnergies
+import multiprocessing as mp
+import random as rnd
+import time
 from generate_positions import GeneratePositions
-from constants import PI
-def CalculateTotalEnergy(N,Z):
-    A = N + Z
-    AV, AA = 14.6433, 21.0680
-    
-    energyVolAsymTerm = AV*A - AA*(A-2*Z)*(A-2*Z)/A   
-    energyCoulomb = CalculateFittedCoulombEnergies(N,Z,45)
-    energySurface = CalculateSurfaceEnergies(A)
-    
-    AS = 14.0788 / (4*PI*1.2257*1.2257)
-    AC = 0.6442 * Z * Z / (pow(A,1/3)*energyCoulomb[0])
-    totalEnergy = []
-    for i in range(len(energyCoulomb)):
-        totalEnergy.append(energyVolAsymTerm - (AS * energySurface[i] + AC * energyCoulomb[i]))
-    A20Plot = arange(0,2.01,0.01)
-    plt.plot(A20Plot,totalEnergy)
-    plt.show()
+from generate_graph import GenerateCoulombEnergyGraphs
+from generate_graph import GenerateSurfaceEnergyGraphs
 
-CalculateTotalEnergy(143,92)
+def main(N, Z, sampleCount):
+    if len(N) < 2 and len(Z) <2:
+        print("[Main] Please input a valid boundary")
+    else:
+        botN, botZ = N[0], Z[0]
+        topN, topZ = N[1], Z[1]
+        for neutronCount in range(botN, topN+1):
+            for protonCount in range(botZ, topZ+1):
+                print("[Main] Generating positions for {A}-{Z}.".format(A=neutronCount+protonCount,Z=protonCount))
+                GeneratePositions(neutronCount, protonCount, sampleCount)
+                #print("[Main] Generating coulomb graph for {A}-{Z} with {count} sample counts.".format(A=neutronCount+protonCount,Z=protonCount, count=sampleCount))
+                #GenerateCoulombEnergyGraphs(neutronCount,protonCount,sampleCount)
+                #print("[Main] Generating surface graph for {A}-{Z}.".format(A=neutronCount+protonCount,Z=protonCount))
+                #GenerateSurfaceEnergyGraphs(neutronCount, protonCount)
 
+main([120,160],[80,100],10)
