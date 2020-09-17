@@ -78,7 +78,6 @@ def SavePositionFigure(fileName,zBar,rhoBar,postNeutron,postProton):
     plt.clf() 
 
 def GeneratePositions(N,Z,sampleCount):
-    #print("[GeneratePositions] Generating positions for {A}-{Z}.".format(A=N+Z,Z=Z))
     A = Z + N 
     for sample in range(sampleCount):
         CreateFolder(A,Z,sample)

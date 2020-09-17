@@ -1,9 +1,11 @@
 import multiprocessing as mp
 import random as rnd
 import time
+import matplotlib.pyplot as plt
 from generate_positions import GeneratePositions
 from generate_graph import GenerateCoulombEnergyGraphs
 from generate_graph import GenerateSurfaceEnergyGraphs
+from calculate_energies import CalculateFissionBarrier
 
 def main(N, Z, sampleCount):
     if len(N) < 2 and len(Z) <2:
@@ -20,4 +22,23 @@ def main(N, Z, sampleCount):
                 #print("[Main] Generating surface graph for {A}-{Z}.".format(A=neutronCount+protonCount,Z=protonCount))
                 #GenerateSurfaceEnergyGraphs(neutronCount, protonCount)
 
-main([120,160],[80,100],10)
+#main([120,141],[80,100],15)
+
+def test():
+    NRange, ZRange = range(120,160), range(80,101)
+    barrierPlot = []
+    for N in NRange:
+        barrierList = []
+        for Z in ZRange:
+            fissionBarrier = CalculateFissionBarrier(N,Z,10)
+            barrierList.append(fissionBarrier)
+            #print("{}-{}".format(N+Z,Z))
+        barrierPlot.append(barrierList)
+    plt.contourf(ZRange, NRange, barrierPlot)
+    plt.colorbar()
+    plt.xlabel("Proton (Z)")
+    plt.ylabel("Neutron (N)")
+    plt.title("Fission Barrier")
+    plt.show()
+    
+#test()

@@ -1,13 +1,17 @@
 #PUBLIC LIBRARY IMPORTS
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 from numpy import array
 from numpy import arange
 from numpy import polyfit
 from numpy import poly1d
+from numpy import asarray
 
 #USER DEFINED IMPORTS
 from calculate_energies import CalculateCoulombEnergies
 from calculate_energies import CalculateSurfaceEnergies
+from calculate_energies import CalculateTotalEnergies
+from calculate_energies import CalculateFissionBarrier
 from utils import FileExist
 from constants import DATA_FOLDER_PATH
 
@@ -37,4 +41,8 @@ def GenerateSurfaceEnergyGraphs(N,Z):
         plt.savefig(fileName)
         plt.clf()
 
-GenerateCoulombEnergyGraphs(143,92,10)
+def GenerateTotalEnergyGraphs(N,Z,sampleCount):
+    EPlot = CalculateTotalEnergies(N,Z,sampleCount)
+    A20Plot = arange(0,2.01,0.01)
+    plt.plot(A20Plot, EPlot)
+    plt.show()
